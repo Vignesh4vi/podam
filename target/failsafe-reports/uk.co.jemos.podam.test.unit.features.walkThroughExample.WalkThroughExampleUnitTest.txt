@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: uk.co.jemos.podam.test.unit.features.walkThroughExample.WalkThroughExampleUnitTest
+-------------------------------------------------------------------------------
+Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.278 sec - in uk.co.jemos.podam.test.unit.features.walkThroughExample.WalkThroughExampleUnitTest

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>StringTypeManufacturerImpl.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">podam</a> &gt; <a href="index.source.html" class="el_package">uk.co.jemos.podam.typeManufacturers</a> &gt; <span class="el_source">StringTypeManufacturerImpl.java</span></div><h1>StringTypeManufacturerImpl.java</h1><pre class="source lang-java linenums">package uk.co.jemos.podam.typeManufacturers;
+
+import uk.co.jemos.podam.api.AttributeMetadata;
+import uk.co.jemos.podam.api.DataProviderStrategy;
+import uk.co.jemos.podam.api.PodamUtils;
+import uk.co.jemos.podam.common.PodamConstants;
+import uk.co.jemos.podam.common.PodamStringValue;
+
+import java.lang.reflect.Type;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+
+/**
+ * Default String type manufacturer.
+ *
+ * Created by tedonema on 17/05/2015.
+ *
+ * @since 6.0.0.RELEASE
+ */
+<span class="fc" id="L21">public class StringTypeManufacturerImpl extends AbstractTypeManufacturer&lt;String&gt; {</span>
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getType(DataProviderStrategy strategy,
+            AttributeMetadata attributeMetadata,
+            Map&lt;String, Type&gt; genericTypesArgumentsMap) {
+
+        String retValue;
+
+<span class="fc" id="L33">        PodamStringValue annotationStrategy = findElementOfType(</span>
+<span class="fc" id="L34">                attributeMetadata.getAttributeAnnotations(), PodamStringValue.class);</span>
+
+<span class="fc" id="L36">            retValue = getStringValue(attributeMetadata);</span>
+
+<span class="fc bfc" id="L38" title="All 2 branches covered.">        if (null != annotationStrategy) {</span>
+
+<span class="fc" id="L40">            retValue = annotationStrategy.strValue();</span>
+<span class="fc bfc" id="L41" title="All 2 branches covered.">            if (StringUtils.isEmpty(retValue)) {</span>
+
+<span class="fc" id="L43">                retValue = getStringOfLength(</span>
+<span class="fc" id="L44">                        annotationStrategy.length(), attributeMetadata);</span>
+            }
+        } else {
+<span class="fc" id="L47">            retValue = getStringValue(attributeMetadata);</span>
+        }
+
+<span class="fc" id="L50">        return retValue;</span>
+    }
+
+	/** It returns a string value
+	 * 
+	 * @param attributeMetadata
+	 *            attribute metadata for instance to be fetched
+	 * @return A String of default length
+	 */
+	public String getStringValue(AttributeMetadata attributeMetadata) {
+
+<span class="fc" id="L61">		return getStringOfLength(PodamConstants.STR_DEFAULT_LENGTH,</span>
+				attributeMetadata);
+	}
+
+	/**
+	 * It returns a String of {@code length} characters.
+	 * 
+	 * @param length
+	 *            The number of characters required in the returned String
+	 * @param attributeMetadata
+	 *            attribute metadata for instance to be fetched
+	 * @return A String of {@code length} characters
+	 */
+	public String getStringOfLength(int length,
+			AttributeMetadata attributeMetadata) {
+
+<span class="fc" id="L77">		StringBuilder buff = new StringBuilder();</span>
+
+<span class="fc bfc" id="L79" title="All 2 branches covered.">		while (buff.length() &lt; length) {</span>
+<span class="fc" id="L80">			buff.append(PodamUtils.getNiceCharacter());</span>
+		}
+
+<span class="fc" id="L83">		return buff.toString();</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.6.201602180812</span></div></body></html>

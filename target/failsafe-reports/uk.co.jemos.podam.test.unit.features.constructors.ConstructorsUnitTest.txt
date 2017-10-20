@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: uk.co.jemos.podam.test.unit.features.constructors.ConstructorsUnitTest
+-------------------------------------------------------------------------------
+Tests run: 25, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.116 sec - in uk.co.jemos.podam.test.unit.features.constructors.ConstructorsUnitTest

@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: uk.co.jemos.podam.test.unit.pdm45.Pdm45UnitTest
+-------------------------------------------------------------------------------
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.169 sec - in uk.co.jemos.podam.test.unit.pdm45.Pdm45UnitTest

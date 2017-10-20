@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>CharTypeManufacturerImpl.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">podam</a> &gt; <a href="index.source.html" class="el_package">uk.co.jemos.podam.typeManufacturers</a> &gt; <span class="el_source">CharTypeManufacturerImpl.java</span></div><h1>CharTypeManufacturerImpl.java</h1><pre class="source lang-java linenums">package uk.co.jemos.podam.typeManufacturers;
+
+import uk.co.jemos.podam.api.AttributeMetadata;
+import uk.co.jemos.podam.api.DataProviderStrategy;
+import uk.co.jemos.podam.api.PodamUtils;
+import uk.co.jemos.podam.common.PodamCharValue;
+
+import java.lang.reflect.Type;
+import java.util.Map;
+
+/**
+ * Default character type manufacturer.
+ *
+ * Created by tedonema on 17/05/2015.
+ *
+ * @since 6.0.0.RELEASE
+ */
+<span class="fc" id="L18">public class CharTypeManufacturerImpl extends AbstractTypeManufacturer&lt;Character&gt; {</span>
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Character getType(DataProviderStrategy strategy,
+            AttributeMetadata attributeMetadata,
+            Map&lt;String, Type&gt; genericTypesArgumentsMap) {
+
+        Character retValue;
+
+<span class="fc" id="L30">        PodamCharValue annotationStrategy = findElementOfType(</span>
+<span class="fc" id="L31">                attributeMetadata.getAttributeAnnotations(), PodamCharValue.class);</span>
+<span class="fc bfc" id="L32" title="All 2 branches covered.">        if (null != annotationStrategy) {</span>
+
+<span class="fc" id="L34">            retValue = annotationStrategy.charValue();</span>
+<span class="fc bfc" id="L35" title="All 2 branches covered.">            if (retValue == ' ') {</span>
+
+<span class="fc" id="L37">                char minValue = annotationStrategy.minValue();</span>
+<span class="fc" id="L38">                char maxValue = annotationStrategy.maxValue();</span>
+
+                // Sanity check
+<span class="fc bfc" id="L41" title="All 2 branches covered.">                if (minValue &gt; maxValue) {</span>
+<span class="fc" id="L42">                    maxValue = minValue;</span>
+                }
+
+<span class="fc" id="L45">                retValue = getCharacterInRange(minValue, maxValue,</span>
+                        attributeMetadata);
+<span class="fc" id="L47">            }</span>
+        } else {
+<span class="fc" id="L49">            retValue = getCharacter(attributeMetadata);</span>
+        }
+
+<span class="fc" id="L52">        return retValue;</span>
+    }
+
+	/** It returns a char/Character value.
+	 * 
+	 * @param attributeMetadata
+	 *            attribute metadata for instance to be fetched
+	 * @return a char/Character value
+	 */
+	public Character getCharacter(AttributeMetadata attributeMetadata) {
+
+<span class="fc" id="L63">		return PodamUtils.getNiceCharacter();</span>
+	}
+
+	/**
+	 * It returns a char/Character value between min and max value (included).
+	 * 
+	 * @param minValue
+	 *            The minimum value for the returned value
+	 * @param maxValue
+	 *            The maximum value for the returned value
+	 * @param attributeMetadata
+	 *            attribute metadata for instance to be fetched
+	 * @return A char/Character value between min and max value (included).
+	 */
+	public Character getCharacterInRange(char minValue, char maxValue,
+			AttributeMetadata attributeMetadata) {
+
+<span class="fc" id="L80">		return (char)PodamUtils.getIntegerInRange(minValue, maxValue);</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.6.201602180812</span></div></body></html>

@@ -1,0 +1,616 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>AbstractRandomDataProviderStrategy.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">podam</a> &gt; <a href="index.source.html" class="el_package">uk.co.jemos.podam.api</a> &gt; <span class="el_source">AbstractRandomDataProviderStrategy.java</span></div><h1>AbstractRandomDataProviderStrategy.java</h1><pre class="source lang-java linenums">/**
+ *
+ */
+package uk.co.jemos.podam.api;
+
+import net.jcip.annotations.ThreadSafe;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import uk.co.jemos.podam.common.*;
+import uk.co.jemos.podam.exceptions.PodamMockeryException;
+import uk.co.jemos.podam.typeManufacturers.ArrayTypeManufacturerImpl;
+import uk.co.jemos.podam.typeManufacturers.BooleanTypeManufacturerImpl;
+import uk.co.jemos.podam.typeManufacturers.ByteTypeManufacturerImpl;
+import uk.co.jemos.podam.typeManufacturers.CharTypeManufacturerImpl;
+import uk.co.jemos.podam.typeManufacturers.CollectionTypeManufacturerImpl;
+import uk.co.jemos.podam.typeManufacturers.DoubleTypeManufacturerImpl;
+import uk.co.jemos.podam.typeManufacturers.EnumTypeManufacturerImpl;
+import uk.co.jemos.podam.typeManufacturers.FloatTypeManufacturerImpl;
+import uk.co.jemos.podam.typeManufacturers.IntTypeManufacturerImpl;
+import uk.co.jemos.podam.typeManufacturers.LongTypeManufacturerImpl;
+import uk.co.jemos.podam.typeManufacturers.MapTypeManufacturerImpl;
+import uk.co.jemos.podam.typeManufacturers.ShortTypeManufacturerImpl;
+import uk.co.jemos.podam.typeManufacturers.StringTypeManufacturerImpl;
+import uk.co.jemos.podam.typeManufacturers.TypeTypeManufacturerImpl;
+import uk.co.jemos.podam.typeManufacturers.TypeManufacturer;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+
+/**
+ * Default abstract implementation of a {@link DataProviderStrategy}
+ * &lt;p&gt;
+ * This default implementation returns values based on a random generator.
+ * Convinient for subclassing and redefining behaviour.
+ * &lt;b&gt;Don't use this implementation if you seek deterministic values&lt;/b&gt;
+ * &lt;/p&gt;
+ *
+ * &lt;p&gt;
+ * All values returned by this implementation are &lt;b&gt;different from zero&lt;/b&gt;.
+ * &lt;/p&gt;
+ *
+ * @author mtedone
+ *
+ * @since 1.0.0
+ *
+ */
+@ThreadSafe
+public abstract class AbstractRandomDataProviderStrategy implements RandomDataProviderStrategy {
+
+	// -------------------&gt;&gt; Constants
+
+	/** Application logger */
+<span class="fc" id="L67">	private static final Logger LOG = LoggerFactory.getLogger(AbstractRandomDataProviderStrategy.class);</span>
+
+	/**
+	 * How many times it is allowed to PODAM to create an instance of the same
+	 * class in a recursive hierarchy
+	 */
+	public static final int MAX_DEPTH = 3;
+
+	/** The number of collection elements. */
+<span class="fc" id="L76">	private final AtomicInteger nbrOfCollectionElements = new AtomicInteger();</span>
+
+	/** Flag to enable/disable the memoization setting. */
+<span class="fc" id="L79">	private final AtomicBoolean isMemoizationEnabled = new AtomicBoolean();</span>
+
+	/**
+	 * A map to keep one object for each class. If memoization is enabled, the
+	 * factory will use this table to avoid creating objects of the same class
+	 * multiple times.
+	 */
+<span class="fc" id="L86">	private final Map&lt;Class&lt;?&gt;, Map&lt;Type[], Object&gt;&gt; memoizationTable = new HashMap&lt;Class&lt;?&gt;, Map&lt;Type[], Object&gt;&gt;();</span>
+
+	/**
+	 * A mapping between types and their registered manufacturers
+	 */
+<span class="fc" id="L91">	private final ConcurrentHashMap&lt;Class&lt;?&gt;, TypeManufacturer&lt;?&gt;&gt; typeManufacturers</span>
+			= new ConcurrentHashMap&lt;Class&lt;?&gt;, TypeManufacturer&lt;?&gt;&gt;();
+
+	/**
+	 * A list of user-submitted specific implementations for interfaces and
+	 * abstract classes
+	 */
+<span class="fc" id="L98">	private final Map&lt;Class&lt;?&gt;, Class&lt;?&gt;&gt; specificTypes = new ConcurrentHashMap&lt;Class&lt;?&gt;, Class&lt;?&gt;&gt;();</span>
+
+	/**
+	 * A list of user-submitted factories to build interfaces and abstract classes
+	 */
+<span class="fc" id="L103">	private final Map&lt;Class&lt;?&gt;, Class&lt;?&gt;&gt; factoryTypes = new ConcurrentHashMap&lt;Class&lt;?&gt;, Class&lt;?&gt;&gt;();</span>
+
+	/**
+	 * Mapping between annotations and attribute strategies
+	 */
+<span class="fc" id="L108">	private final Map&lt;Class&lt;? extends Annotation&gt;, AttributeStrategy&lt;?&gt;&gt; attributeStrategies</span>
+			= new ConcurrentHashMap&lt;Class&lt;? extends Annotation&gt;, AttributeStrategy&lt;?&gt;&gt;();
+
+	/** The constructor comparator */
+<span class="fc" id="L112">	private AbstractConstructorComparator constructorHeavyComparator =</span>
+			ConstructorHeavyFirstComparator.INSTANCE;
+
+	/** The constructor comparator */
+<span class="fc" id="L116">	private AbstractConstructorComparator constructorLightComparator =</span>
+			ConstructorLightFirstComparator.INSTANCE;
+
+	/** The constructor comparator */
+<span class="fc" id="L120">	private AbstractMethodComparator methodHeavyComparator</span>
+			= MethodHeavyFirstComparator.INSTANCE;
+
+	/** The constructor comparator */
+<span class="fc" id="L124">	private AbstractMethodComparator methodLightComparator</span>
+			= MethodLightFirstComparator.INSTANCE;
+
+	// -------------------&gt;&gt; Instance / Static variables
+
+	// -------------------&gt;&gt; Constructors
+
+	/**
+	 * Implementation of the Singleton pattern
+	 */
+	public AbstractRandomDataProviderStrategy() {
+<span class="fc" id="L135">		this(PodamConstants.DEFAULT_NBR_COLLECTION_ELEMENTS);</span>
+<span class="fc" id="L136">	}</span>
+
+<span class="fc" id="L138">	public AbstractRandomDataProviderStrategy(int nbrOfCollectionElements) {</span>
+<span class="fc" id="L139">		this.nbrOfCollectionElements.set(nbrOfCollectionElements);</span>
+
+<span class="fc" id="L141">		TypeManufacturer&lt;?&gt; byteManufacturer = new ByteTypeManufacturerImpl();</span>
+<span class="fc" id="L142">		typeManufacturers.put(byte.class, byteManufacturer);</span>
+<span class="fc" id="L143">		typeManufacturers.put(Byte.class, byteManufacturer);</span>
+
+<span class="fc" id="L145">		TypeManufacturer&lt;?&gt; booleanManufacturer = new BooleanTypeManufacturerImpl();</span>
+<span class="fc" id="L146">		typeManufacturers.put(boolean.class, booleanManufacturer);</span>
+<span class="fc" id="L147">		typeManufacturers.put(Boolean.class, booleanManufacturer);</span>
+
+<span class="fc" id="L149">		TypeManufacturer&lt;?&gt; charManufacturer = new CharTypeManufacturerImpl();</span>
+<span class="fc" id="L150">		typeManufacturers.put(char.class, charManufacturer);</span>
+<span class="fc" id="L151">		typeManufacturers.put(Character.class, charManufacturer);</span>
+
+<span class="fc" id="L153">		TypeManufacturer&lt;?&gt; shortManufacturer = new ShortTypeManufacturerImpl();</span>
+<span class="fc" id="L154">		typeManufacturers.put(short.class, shortManufacturer);</span>
+<span class="fc" id="L155">		typeManufacturers.put(Short.class, shortManufacturer);</span>
+
+<span class="fc" id="L157">		TypeManufacturer&lt;?&gt; intManufacturer = new IntTypeManufacturerImpl();</span>
+<span class="fc" id="L158">		typeManufacturers.put(int.class, intManufacturer);</span>
+<span class="fc" id="L159">		typeManufacturers.put(Integer.class, intManufacturer);</span>
+
+<span class="fc" id="L161">		TypeManufacturer&lt;?&gt; longManufacturer = new LongTypeManufacturerImpl();</span>
+<span class="fc" id="L162">		typeManufacturers.put(long.class, longManufacturer);</span>
+<span class="fc" id="L163">		typeManufacturers.put(Long.class, longManufacturer);</span>
+
+<span class="fc" id="L165">		TypeManufacturer&lt;?&gt; floatManufacturer = new FloatTypeManufacturerImpl();</span>
+<span class="fc" id="L166">		typeManufacturers.put(float.class, floatManufacturer);</span>
+<span class="fc" id="L167">		typeManufacturers.put(Float.class, floatManufacturer);</span>
+
+<span class="fc" id="L169">		TypeManufacturer&lt;?&gt; doubleManufacturer = new DoubleTypeManufacturerImpl();</span>
+<span class="fc" id="L170">		typeManufacturers.put(double.class, doubleManufacturer);</span>
+<span class="fc" id="L171">		typeManufacturers.put(Double.class, doubleManufacturer);</span>
+
+<span class="fc" id="L173">		TypeManufacturer&lt;?&gt; stringManufacturer = new StringTypeManufacturerImpl();</span>
+<span class="fc" id="L174">		typeManufacturers.put(String.class, stringManufacturer);</span>
+
+<span class="fc" id="L176">		TypeManufacturer&lt;?&gt; enumManufacturer = new EnumTypeManufacturerImpl();</span>
+<span class="fc" id="L177">		typeManufacturers.put(Enum.class, enumManufacturer);</span>
+
+<span class="fc" id="L179">		TypeManufacturer&lt;?&gt; typeManufacturer = new TypeTypeManufacturerImpl();</span>
+<span class="fc" id="L180">		typeManufacturers.put(Type.class, typeManufacturer);</span>
+
+<span class="fc" id="L182">		TypeManufacturer&lt;?&gt; collectionManufacturer = new CollectionTypeManufacturerImpl();</span>
+<span class="fc" id="L183">		typeManufacturers.put(Collection.class, collectionManufacturer);</span>
+
+<span class="fc" id="L185">		TypeManufacturer&lt;?&gt; mapManufacturer = new MapTypeManufacturerImpl();</span>
+<span class="fc" id="L186">		typeManufacturers.put(Map.class, mapManufacturer);</span>
+
+<span class="fc" id="L188">		TypeManufacturer&lt;?&gt; arrayManufacturer = new ArrayTypeManufacturerImpl();</span>
+<span class="fc" id="L189">		typeManufacturers.put(Cloneable.class, arrayManufacturer);</span>
+<span class="fc" id="L190">	}</span>
+
+	// -------------------&gt;&gt; Public methods
+
+	// -------------------&gt;&gt; Getters / Setters
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int getNumberOfCollectionElements(Class&lt;?&gt; type) {
+<span class="fc" id="L201">		return nbrOfCollectionElements.get();</span>
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void setDefaultNumberOfCollectionElements(int newNumberOfCollectionElements) {
+<span class="fc" id="L209">		nbrOfCollectionElements.set(newNumberOfCollectionElements);</span>
+<span class="fc" id="L210">	}</span>
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int getMaxDepth(Class&lt;?&gt; type) {
+<span class="fc" id="L217">		return MAX_DEPTH;</span>
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean isMemoizationEnabled() {
+<span class="fc" id="L225">		return isMemoizationEnabled.get();</span>
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void setMemoization(boolean isMemoizationEnabled) {
+<span class="fc" id="L233">		this.isMemoizationEnabled.set(isMemoizationEnabled);</span>
+<span class="fc" id="L234">	}</span>
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public synchronized Object getMemoizedObject(AttributeMetadata attributeMetadata) {
+
+<span class="fc bfc" id="L242" title="All 2 branches covered.">		if (isMemoizationEnabled.get()) {</span>
+			/* No memoization for arrays, collections and maps */
+<span class="fc" id="L244">			Class&lt;?&gt; pojoClass = attributeMetadata.getPojoClass();</span>
+<span class="fc bfc" id="L245" title="All 2 branches covered.">			if (pojoClass == null ||</span>
+<span class="fc bfc" id="L246" title="All 2 branches covered.">					(!pojoClass.isArray() &amp;&amp;</span>
+<span class="fc bfc" id="L247" title="All 2 branches covered.">					!Collection.class.isAssignableFrom(pojoClass) &amp;&amp;</span>
+<span class="fc bfc" id="L248" title="All 2 branches covered.">					!Map.class.isAssignableFrom(pojoClass))) {</span>
+
+<span class="fc" id="L250">				Map&lt;Type[], Object&gt; map = memoizationTable.get(attributeMetadata.getAttributeType());</span>
+<span class="fc bfc" id="L251" title="All 2 branches covered.">				if (map != null) {</span>
+<span class="fc bfc" id="L252" title="All 2 branches covered.">					for (Entry&lt;Type[], Object&gt; entry : map.entrySet()) {</span>
+<span class="fc bfc" id="L253" title="All 2 branches covered.">						if (Arrays.equals(entry.getKey(), attributeMetadata.getAttrGenericArgs())) {</span>
+<span class="fc" id="L254">							LOG.trace(&quot;Found memoized {}&lt;{}&gt;&quot;, attributeMetadata.getAttributeType(), attributeMetadata.getAttrGenericArgs());</span>
+<span class="fc" id="L255">							return entry.getValue();</span>
+						}
+<span class="fc" id="L257">					}</span>
+				}
+			}
+		}
+<span class="fc" id="L261">		return null;</span>
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public synchronized void cacheMemoizedObject(AttributeMetadata attributeMetadata,
+			Object instance) {
+
+<span class="fc bfc" id="L271" title="All 2 branches covered.">		if (isMemoizationEnabled.get()) {</span>
+<span class="fc" id="L272">			Map&lt;Type[], Object&gt; map = memoizationTable.get(attributeMetadata.getAttributeType());</span>
+<span class="fc bfc" id="L273" title="All 2 branches covered.">			if (map == null) {</span>
+<span class="fc" id="L274">				map = new HashMap&lt;Type[], Object&gt;();</span>
+<span class="fc" id="L275">				memoizationTable.put(attributeMetadata.getAttributeType(), map);</span>
+			}
+<span class="fc" id="L277">			LOG.trace(&quot;Saving memoized {}&lt;{}&gt;&quot;, attributeMetadata.getAttributeType(), attributeMetadata.getAttrGenericArgs());</span>
+<span class="fc" id="L278">			map.put(attributeMetadata.getAttrGenericArgs(), instance);</span>
+		}
+<span class="fc" id="L280">	}</span>
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public synchronized void clearMemoizationCache() {
+
+<span class="fc" id="L288">		memoizationTable.clear();</span>
+
+<span class="fc" id="L290">	}</span>
+
+	/**
+	 * Rearranges POJO's constructors in order they will be tried to produce the
+	 * POJO. Default strategy consist of putting constructors with less
+	 * parameters to be tried first.
+	 *
+	 * @param constructors
+	 *            Array of POJO's constructors
+	 * @param order
+	 *            {@link uk.co.jemos.podam.api.DataProviderStrategy.Order} how to sort constructors
+	 */
+	@Override
+	public void sort(Constructor&lt;?&gt;[] constructors, Order order) {
+		AbstractConstructorComparator constructorComparator;
+<span class="pc bfc" id="L305" title="All 2 branches covered.">		switch(order) {</span>
+		case HEAVY_FIRST:
+<span class="fc" id="L307">			constructorComparator = constructorHeavyComparator;</span>
+<span class="fc" id="L308">			break;</span>
+		default:
+<span class="fc" id="L310">			constructorComparator = constructorLightComparator;</span>
+			break;
+		}
+<span class="fc" id="L313">		Arrays.sort(constructors, constructorComparator);</span>
+<span class="fc" id="L314">	}</span>
+
+	/**
+	 * Rearranges POJO's methods in order they will be tried to produce the
+	 * POJO. Default strategy consist of putting methods with more
+	 * parameters to be tried first.
+	 *
+	 * @param methods
+	 *            Array of POJO's methods
+	 * @param order
+	 *            {@link uk.co.jemos.podam.api.DataProviderStrategy.Order} how to sort constructors
+	 */
+	@Override
+	public void sort(Method[] methods, Order order) {
+		AbstractMethodComparator methodComparator;
+<span class="fc bfc" id="L329" title="All 2 branches covered.">		switch(order) {</span>
+		case HEAVY_FIRST:
+<span class="fc" id="L331">			methodComparator = methodHeavyComparator;</span>
+<span class="fc" id="L332">			break;</span>
+		default:
+<span class="fc" id="L334">			methodComparator = methodLightComparator;</span>
+			break;
+		}
+<span class="fc" id="L337">		Arrays.sort(methods, methodComparator);</span>
+<span class="fc" id="L338">	}</span>
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public &lt;T&gt; DataProviderStrategy addOrReplaceTypeManufacturer(
+			Class&lt;? extends T&gt; type, TypeManufacturer&lt;T&gt; typeManufacturer) {
+
+<span class="fc" id="L347">		typeManufacturers.put(type, typeManufacturer);</span>
+<span class="fc" id="L348">		return this;</span>
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public &lt;T&gt; DataProviderStrategy removeTypeManufacturer(
+			Class&lt;T&gt; type) {
+
+<span class="fc" id="L358">		typeManufacturers.remove(type);</span>
+<span class="fc" id="L359">		return this;</span>
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public &lt;T&gt; T getTypeValue(AttributeMetadata attributeMetadata,
+			Map&lt;String, Type&gt; genericTypesArgumentsMap,
+			Class&lt;T&gt; pojoType) {
+
+<span class="pc bpc" id="L370" title="1 of 2 branches missed.">		if (null == attributeMetadata) {</span>
+<span class="nc" id="L371">			throw new IllegalArgumentException(</span>
+					&quot;The attribute metadata inside the wrapper cannot be null&quot;);
+		}
+
+<span class="pc bpc" id="L375" title="1 of 2 branches missed.">		if (null == attributeMetadata.getAttributeAnnotations()) {</span>
+<span class="nc" id="L376">			throw new IllegalArgumentException(</span>
+					&quot;The annotations list within the attribute metadata cannot be null, although it can be empty&quot;);
+		}
+
+<span class="fc" id="L380">		Deque&lt;Class&lt;?&gt;&gt; types = new ArrayDeque&lt;Class&lt;?&gt;&gt;();</span>
+<span class="fc" id="L381">		types.add(pojoType);</span>
+<span class="fc bfc" id="L382" title="All 2 branches covered.">		while (!types.isEmpty()) {</span>
+
+<span class="fc" id="L384">			Class&lt;?&gt; type = types.remove();</span>
+<span class="fc" id="L385">			TypeManufacturer&lt;?&gt; manufacturer = typeManufacturers.get(type);</span>
+<span class="fc bfc" id="L386" title="All 2 branches covered.">			if (null != manufacturer) {</span>
+				try {
+					@SuppressWarnings(&quot;unchecked&quot;)
+<span class="fc" id="L389">					T tmp = (T) manufacturer.getType(this, attributeMetadata,</span>
+							genericTypesArgumentsMap);
+<span class="fc bfc" id="L391" title="All 2 branches covered.">					if (null != tmp) {</span>
+<span class="fc" id="L392">						log(attributeMetadata);</span>
+<span class="fc" id="L393">						return tmp;</span>
+					} else {
+<span class="fc" id="L395">						LOG.debug(&quot;{} cannot manufacture {}&quot;, manufacturer, pojoType);</span>
+					}
+<span class="fc" id="L397">				} catch (Exception e) {</span>
+<span class="fc" id="L398">					throw new PodamMockeryException(</span>
+							&quot;Unable to instantiate &quot; + pojoType, e);
+<span class="fc" id="L400">				}</span>
+			}
+
+<span class="fc bfc" id="L403" title="All 2 branches covered.">			for (Class&lt;?&gt; iface : type.getInterfaces()) {</span>
+<span class="fc" id="L404">				types.add(iface);</span>
+			}
+<span class="fc" id="L406">			type = type.getSuperclass();</span>
+<span class="fc bfc" id="L407" title="All 2 branches covered.">			if (null != type) {</span>
+<span class="fc" id="L408">				types.add(type);</span>
+			}
+<span class="fc" id="L410">		}</span>
+
+<span class="fc" id="L412">		LOG.debug(&quot;Failed to find suitable manufacturer for type {}&quot;, pojoType);</span>
+<span class="fc" id="L413">		return null;</span>
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public &lt;T&gt; AbstractRandomDataProviderStrategy addOrReplaceFactory(
+			final Class&lt;T&gt; abstractClass, final Class&lt;?&gt; factoryClass) {
+
+<span class="fc" id="L423">		factoryTypes.put(abstractClass, factoryClass);</span>
+<span class="fc" id="L424">		return this;</span>
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public &lt;T&gt; AbstractRandomDataProviderStrategy removeFactory(
+			final Class&lt;T&gt; abstractClass) {
+
+<span class="fc" id="L434">		factoryTypes.remove(abstractClass);</span>
+<span class="fc" id="L435">		return this;</span>
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Class&lt;?&gt; getFactoryClass(Class&lt;?&gt; nonInstantiatableClass) {
+
+<span class="fc" id="L444">		return factoryTypes.get(nonInstantiatableClass);</span>
+	}
+
+	/**
+	 * Bind an interface/abstract class to a specific implementation. If the
+	 * strategy previously contained a binding for the interface/abstract class,
+	 * the old value will not be replaced by the new value. If you want to force the
+	 * value replacement, invoke removeSpecific before invoking this method.
+	 * If you want to implement more sophisticated binding strategy, override this class.
+	 *
+	 * @param &lt;T&gt; return type
+	 * @param abstractClass
+	 *            the interface/abstract class to bind
+	 * @param specificClass
+	 *            the specific class implementing or extending
+	 *            {@code abstractClass}.
+	 * @return itself
+	 */
+	@Override
+	public &lt;T&gt; DataProviderStrategy addOrReplaceSpecific(
+			final Class&lt;T&gt; abstractClass, final Class&lt;? extends T&gt; specificClass) {
+
+<span class="fc" id="L466">		specificTypes.put(abstractClass, specificClass);</span>
+
+<span class="fc" id="L468">		return this;</span>
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public &lt;T&gt; DataProviderStrategy removeSpecific(
+			final Class&lt;T&gt; abstractClass) {
+
+<span class="fc" id="L478">		specificTypes.remove(abstractClass);</span>
+<span class="fc" id="L479">		return this;</span>
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public &lt;T&gt; Class&lt;? extends T&gt; getSpecificClass(
+			Class&lt;T&gt; nonInstantiatableClass) {
+
+		@SuppressWarnings(&quot;unchecked&quot;)
+<span class="fc" id="L490">		Class&lt;? extends T&gt; found = (Class&lt;? extends T&gt;) specificTypes</span>
+<span class="fc" id="L491">				.get(nonInstantiatableClass);</span>
+<span class="fc bfc" id="L492" title="All 2 branches covered.">		if (found == null) {</span>
+<span class="fc" id="L493">			found = nonInstantiatableClass;</span>
+		}
+<span class="fc" id="L495">		return found;</span>
+
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public RandomDataProviderStrategy addOrReplaceAttributeStrategy(
+			final Class&lt;? extends Annotation&gt; annotationClass,
+			final AttributeStrategy&lt;?&gt; attributeStrategy) {
+
+<span class="fc" id="L507">		attributeStrategies.put(annotationClass, attributeStrategy);</span>
+
+<span class="fc" id="L509">		return this;</span>
+	}
+
+	/**
+	 * Remove binding of an annotation to attribute strategy
+	 *
+	 * @param annotationClass
+	 *            the annotation class to remove binding
+	 * @return itself
+	 */
+	@Override
+	public RandomDataProviderStrategy removeAttributeStrategy(
+			final Class&lt;? extends Annotation&gt; annotationClass) {
+
+<span class="fc" id="L523">		attributeStrategies.remove(annotationClass);</span>
+
+<span class="fc" id="L525">		return this;</span>
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public AttributeStrategy&lt;?&gt; getStrategyForAnnotation(
+			final Class&lt;? extends Annotation&gt; annotationClass) {
+
+<span class="fc" id="L535">		return attributeStrategies.get(annotationClass);</span>
+
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public AbstractConstructorComparator getConstructorLightComparator() {
+<span class="fc" id="L544">		return constructorLightComparator;</span>
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void setConstructorLightComparator(AbstractConstructorComparator constructorLightComparator) {
+<span class="fc" id="L552">		this.constructorLightComparator = constructorLightComparator;</span>
+<span class="fc" id="L553">	}</span>
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public AbstractConstructorComparator getConstructorHeavyComparator() {
+<span class="fc" id="L560">		return constructorHeavyComparator;</span>
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void setConstructorHeavyComparator(AbstractConstructorComparator constructorHeavyComparator) {
+<span class="fc" id="L568">		this.constructorHeavyComparator = constructorHeavyComparator;</span>
+<span class="fc" id="L569">	}</span>
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public AbstractMethodComparator getMethodLightComparator() {
+<span class="fc" id="L576">		return methodLightComparator;</span>
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void setMethodLightComparator(AbstractMethodComparator methodLightComparator) {
+<span class="fc" id="L584">		this.methodLightComparator = methodLightComparator;</span>
+<span class="fc" id="L585">	}</span>
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public AbstractMethodComparator getMethodHeavyComparator() {
+<span class="fc" id="L592">		return methodHeavyComparator;</span>
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void setMethodHeavyComparator(AbstractMethodComparator methodHeavyComparator) {
+<span class="fc" id="L600">		this.methodHeavyComparator = methodHeavyComparator;</span>
+<span class="fc" id="L601">	}</span>
+
+	// -------------------&gt;&gt; Private methods
+
+	private void log(AttributeMetadata attributeMetadata) {
+<span class="fc" id="L606">		LOG.trace(&quot;Providing data for attribute {}.{}&quot;,</span>
+<span class="fc bfc" id="L607" title="All 2 branches covered.">				attributeMetadata.getPojoClass() != null ? attributeMetadata.getPojoClass().getName() : &quot;&quot;,</span>
+<span class="fc bfc" id="L608" title="All 2 branches covered.">				attributeMetadata.getAttributeName() != null ? attributeMetadata.getAttributeName() : &quot;&quot;);</span>
+<span class="fc" id="L609">	}</span>
+
+	// -------------------&gt;&gt; equals() / hashcode() / toString()
+
+	// -------------------&gt;&gt; Inner classes
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.6.201602180812</span></div></body></html>

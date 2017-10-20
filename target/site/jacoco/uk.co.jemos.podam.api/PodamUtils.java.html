@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>PodamUtils.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">podam</a> &gt; <a href="index.source.html" class="el_package">uk.co.jemos.podam.api</a> &gt; <span class="el_source">PodamUtils.java</span></div><h1>PodamUtils.java</h1><pre class="source lang-java linenums">/**
+ *
+ */
+package uk.co.jemos.podam.api;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
+
+/**
+ * PODAM Utilities class.
+ *
+ * @author mtedone
+ *
+ * @since 1.0.0
+ *
+ */
+<span class="nc" id="L25">public abstract class PodamUtils {</span>
+
+	// ----------------------&gt;&gt; Constants
+
+	/** An array of valid String characters */
+<span class="fc" id="L30">	public static final char[] NICE_ASCII_CHARACTERS = new char[] { 'a', 'b',</span>
+			'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
+			'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B',
+			'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O',
+			'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1',
+			'2', '3', '4', '5', '6', '7', '8', '9', '_' };
+
+	/** The application logger. */
+<span class="fc" id="L38">	private static final Logger LOG = LoggerFactory.getLogger(PodamUtils.class);</span>
+
+	/** Random number generator */
+<span class="fc" id="L41">	private static final Random RANDOM = new Random();</span>
+
+	/**
+	 * It returns a {@link Field} matching the attribute name or null if a field
+	 * was not found.
+	 *
+	 * @param pojoClass
+	 *            The class supposed to contain the field
+	 * @param attributeName
+	 *            The field name
+	 *
+	 * @return a {@link Field} matching the attribute name or null if a field
+	 *         was not found.
+	 */
+	public static Field getField(Class&lt;?&gt; pojoClass, String attributeName) {
+
+<span class="fc" id="L57">		Class&lt;?&gt; clazz = pojoClass;</span>
+<span class="fc bfc" id="L58" title="All 2 branches covered.">		while (clazz != null) {</span>
+			try {
+<span class="fc" id="L60">				return clazz.getDeclaredField(attributeName);</span>
+<span class="fc" id="L61">			} catch (NoSuchFieldException e) {</span>
+<span class="fc" id="L62">				clazz = clazz.getSuperclass();</span>
+<span class="fc" id="L63">			}</span>
+		}
+
+<span class="fc" id="L66">		LOG.warn(&quot;A field could not be found for attribute '{}[{}]'&quot;,</span>
+				pojoClass, attributeName);
+<span class="fc" id="L68">		return null;</span>
+	}
+
+	/**
+	 * It returns an value for a {@link Field} matching the attribute
+	 * name or null if a field was not found.
+	 *
+	 * @param &lt;T&gt;
+	 *            The type of field to be returned
+	 * @param pojo
+	 *            The class supposed to contain the field
+	 * @param attributeName
+	 *            The field name
+	 *
+	 * @return an instance of {@link Field} matching the attribute name or
+	 *         null if a field was not found.
+	 */
+	public static &lt;T&gt; T getFieldValue(Object pojo, String attributeName) {
+<span class="fc" id="L86">		T retValue = null;</span>
+
+		try {
+<span class="fc" id="L89">			Field field = PodamUtils.getField(pojo.getClass(), attributeName);</span>
+
+<span class="fc bfc" id="L91" title="All 2 branches covered.">			if (field != null) {</span>
+
+				// It allows to invoke Field.get on private fields
+<span class="fc" id="L94">				field.setAccessible(true);</span>
+
+				@SuppressWarnings(&quot;unchecked&quot;)
+<span class="fc" id="L97">				T t = (T) field.get(pojo);</span>
+<span class="fc" id="L98">				retValue = t;</span>
+<span class="fc" id="L99">			} else {</span>
+
+<span class="fc" id="L101">				LOG.info(&quot;The field {}[{}] didn't exist.&quot;, pojo.getClass(), attributeName);</span>
+			}
+
+<span class="nc" id="L104">		} catch (Exception e) {</span>
+
+<span class="nc" id="L106">			LOG.warn(&quot;We couldn't get default value for {}[{}]&quot;,</span>
+<span class="nc" id="L107">					pojo.getClass(), attributeName, e);</span>
+<span class="fc" id="L108">		}</span>
+
+<span class="fc" id="L110">		return retValue;</span>
+	}
+
+	/**
+	 * Searches among set of a class'es methods and selects the one defined in
+	 * the most specific descend of the hierarchy tree
+	 *
+	 * @param methods a set of methods to choose from
+	 * @return the selected method
+	 */
+	public static Method selectLatestMethod(Set&lt;Method&gt; methods) {
+		/* We want to find a method defined the latest */
+<span class="fc" id="L122">		Method selected = null;</span>
+<span class="fc bfc" id="L123" title="All 2 branches covered.">		for (Method method : methods) {</span>
+<span class="pc bpc" id="L124" title="1 of 4 branches missed.">			if (selected == null || selected.getDeclaringClass().isAssignableFrom(method.getDeclaringClass())) {</span>
+<span class="fc" id="L125">				selected = method;</span>
+			}
+<span class="fc" id="L127">		}</span>
+<span class="fc" id="L128">		return selected;</span>
+	}
+
+	/**
+	 * Given the attribute and setter it combines annotations from them
+	 * or an empty collection if no custom annotations were found
+	 *
+	 * @param attribute
+	 *            The class attribute
+	 * @param methods
+	 *            List of setters and getter to check annotations
+	 * @return all annotations for the attribute
+	 */
+	public static List&lt;Annotation&gt; getAttributeAnnotations(final Field attribute,
+			final Method... methods) {
+
+<span class="fc" id="L144">		List&lt;Annotation&gt; retValue = new ArrayList&lt;Annotation&gt;();</span>
+
+<span class="fc bfc" id="L146" title="All 2 branches covered.">		if (null != attribute) {</span>
+<span class="fc bfc" id="L147" title="All 2 branches covered.">			for (Annotation annotation : attribute.getAnnotations()) {</span>
+<span class="fc" id="L148">				retValue.add(annotation);</span>
+			}
+		}
+<span class="fc bfc" id="L151" title="All 2 branches covered.">		for (Method method : methods) {</span>
+<span class="fc" id="L152">			Annotation[][] paramAnnotations = method.getParameterAnnotations();</span>
+<span class="fc bfc" id="L153" title="All 2 branches covered.">			if (paramAnnotations.length &gt; 0) {</span>
+<span class="fc bfc" id="L154" title="All 2 branches covered.">				for (Annotation annotation : paramAnnotations[0]) {</span>
+<span class="fc" id="L155">					retValue.add(annotation);</span>
+				}
+			} else {
+<span class="fc bfc" id="L158" title="All 2 branches covered.">				for (Annotation annotation : method.getAnnotations()) {</span>
+<span class="fc" id="L159">					retValue.add(annotation);</span>
+				}
+			}
+		}
+
+<span class="fc" id="L164">		return retValue;</span>
+	}
+
+	/**
+	 * Generates random character from set valid for identifiers in Java language
+	 *
+	 * @return random character suitable for identifier
+	 */
+	public static Character getNiceCharacter() {
+
+<span class="fc" id="L174">		int randomCharIdx = getIntegerInRange(0, NICE_ASCII_CHARACTERS.length - 1);</span>
+<span class="fc" id="L175">		return NICE_ASCII_CHARACTERS[randomCharIdx];</span>
+	}
+	
+	/**
+	 * It returns a long/Long value between min and max value (included).
+	 * 
+	 * @param minValue
+	 *            The minimum value for the returned value
+	 * @param maxValue
+	 *            The maximum value for the returned value
+	 * @return A long/Long value between min and max value (included).
+	 */
+	public static long getLongInRange(long minValue, long maxValue) {
+<span class="fc" id="L188">		return (long) (getDoubleInRange(minValue - 0.5, maxValue + 0.5 - (1 / Long.MAX_VALUE)) + 0.5);</span>
+	}
+
+	/**
+	 * It returns a random int/Integer value between min and max value (included).
+	 * 
+	 * @param minValue
+	 *            The minimum value for the returned value
+	 * @param maxValue
+	 *            The maximum value for the returned value
+	 * @return An int/Integer value between min and max value (included).
+	 */
+	public static int getIntegerInRange(int minValue, int maxValue) {
+<span class="fc" id="L201">		return (int) getLongInRange(minValue, maxValue);</span>
+	}
+
+	/**
+	 * It returns a double/Double value between min and max value (included).
+	 * 
+	 * @param minValue
+	 *            The minimum value for the returned value
+	 * @param maxValue
+	 *            The maximum value for the returned value
+	 * @return A double/Double value between min and max value (included)
+	 */
+	public static double getDoubleInRange(double minValue, double maxValue) {
+
+		// This can happen. It's a way to specify a precise value
+<span class="fc bfc" id="L216" title="All 2 branches covered.">		if (minValue == maxValue) {</span>
+<span class="fc" id="L217">			return minValue;</span>
+		}
+		double retValue;
+<span class="fc" id="L220">		double margin = (maxValue - minValue + 0.1);</span>
+		do {
+<span class="fc" id="L222">			retValue = minValue + RANDOM.nextDouble() * margin;</span>
+<span class="fc bfc" id="L223" title="All 2 branches covered.">		} while (retValue &gt; maxValue);</span>
+<span class="fc" id="L224">		return retValue;</span>
+	}
+
+	/**
+	 * Finds boxed type for a primitive type
+	 * 
+	 * @param primitiveType
+	 *            Primitive type to find boxed type for
+	 * @return A boxed type or the same type, if original type was not primitive
+	 */
+	public static Class&lt;?&gt; primitiveToBoxedType(Class&lt;?&gt; primitiveType) {
+
+<span class="fc bfc" id="L236" title="All 2 branches covered.">		if (int.class.equals(primitiveType)) {</span>
+<span class="fc" id="L237">			return Integer.class;</span>
+<span class="fc bfc" id="L238" title="All 2 branches covered.">		} else if (double.class.equals(primitiveType)) {</span>
+<span class="fc" id="L239">			return Double.class;</span>
+<span class="fc bfc" id="L240" title="All 2 branches covered.">		} else if (long.class.equals(primitiveType)) {</span>
+<span class="fc" id="L241">			return Long.class;</span>
+<span class="fc bfc" id="L242" title="All 2 branches covered.">		} else if (byte.class.equals(primitiveType)) {</span>
+<span class="fc" id="L243">			return Byte.class;</span>
+<span class="fc bfc" id="L244" title="All 2 branches covered.">		} else if (float.class.equals(primitiveType)) {</span>
+<span class="fc" id="L245">			return Float.class;</span>
+<span class="pc bpc" id="L246" title="1 of 2 branches missed.">		} else if (char.class.equals(primitiveType)) {</span>
+<span class="nc" id="L247">			return Character.class;</span>
+<span class="pc bpc" id="L248" title="1 of 2 branches missed.">		} else if (short.class.equals(primitiveType)) {</span>
+<span class="fc" id="L249">			return Short.class;</span>
+		} else {
+<span class="nc" id="L251">			return primitiveType;</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.6.201602180812</span></div></body></html>

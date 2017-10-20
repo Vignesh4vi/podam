@@ -1,0 +1,5 @@
+"Story","Title","Result","Date","Stability","Duration (s)"
+"Extensions test","Podam should create InputStream with the custom type manufacturer","SUCCESS","2017-10-20T17:32:25.949+05:30","0.0","0.33"
+"Extensions test","Podam should create POJOs in accordance with custom data provider strategies","SUCCESS","2017-10-20T17:32:24.166+05:30","0.0","0.69"
+"Extensions test","Podam should create Timestamp with the custom type manufacturer","SUCCESS","2017-10-20T17:32:25.503+05:30","0.0","0.44"
+"Extensions test","Podam should fill AttributeMetadata with the attribute name","SUCCESS","2017-10-20T17:32:26.281+05:30","0.0","0.17"

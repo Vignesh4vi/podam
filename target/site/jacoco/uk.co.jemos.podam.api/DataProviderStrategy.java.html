@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>DataProviderStrategy.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">podam</a> &gt; <a href="index.source.html" class="el_package">uk.co.jemos.podam.api</a> &gt; <span class="el_source">DataProviderStrategy.java</span></div><h1>DataProviderStrategy.java</h1><pre class="source lang-java linenums">/**
+ * 
+ */
+package uk.co.jemos.podam.api;
+
+import uk.co.jemos.podam.common.AttributeStrategy;
+import uk.co.jemos.podam.typeManufacturers.TypeManufacturer;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
+import java.util.Map;
+
+/**
+ * This interface defines the contact for PODAM data providers.
+ * &lt;p&gt;
+ * PODAM is a tool to fill POJOs with data. There are different requirements
+ * when it comes to which data POJOs should be filled with. The default strategy
+ * adopted by PODAM is to fill POJOs with random data. However other
+ * requirements might dictate to assign deterministic data using sequences, or
+ * other predictable sources of data. In order to do so, clients of PODAM will
+ * have to provide an implementation of this interface and pass it to the
+ * constructor of the {@link PodamFactoryImpl} class.
+ * &lt;/p&gt;
+ * 
+ * @author mtedone
+ * 
+ * @since 1.0.0
+ * 
+ */
+public interface DataProviderStrategy {
+
+    /**
+     * Registers @TypeManufacturer implementation, which will be used to
+     * instantiate objects of a specified type. Use this to alter factory
+     * behaviour.
+     *
+     * @param &lt;T&gt; type of objects to be produced by the manufacturer
+     * @param type
+     *            the specific class type the specified manufacturer
+     *            will instantiate.
+     * @param typeManufacturer
+     *            type manufacturer implementation to be registered
+     * @return itself
+     */
+    &lt;T&gt; DataProviderStrategy addOrReplaceTypeManufacturer(
+            Class&lt;? extends T&gt; type, TypeManufacturer&lt;T&gt; typeManufacturer);
+
+    /**
+     * Remove binding of a class type to a specific
+     * implementation of type manufacturer
+     *
+     * @param &lt;T&gt; type of objects to be produced by the manufacturer
+     * @param type
+     *            the specific class type to remove binding
+     * @return itself
+     */
+    &lt;T&gt; DataProviderStrategy removeTypeManufacturer(
+           Class&lt;T&gt; type);
+
+    /**
+     * Obtains a type value
+     *
+     * @param &lt;T&gt; type of returned object
+     * @param attributeMetadata The AttributeMetadata information
+     * @param genericTypesArgumentsMap The generic attribute type argument types
+     * @param pojoType The class of the requested type
+     * @return The type value
+     */
+    &lt;T&gt; T getTypeValue(AttributeMetadata attributeMetadata,
+            Map&lt;String, Type&gt; genericTypesArgumentsMap, Class&lt;T&gt; pojoType);
+
+    /**
+     * Bind an interface/abstract class to a specific implementation. If the
+     * strategy previously contained a binding for the interface/abstract class,
+     * the old value will be replaced by the new value.
+     * If you want to implement more sophisticated binding strategy, override this class.
+     *
+     * @param &lt;T&gt; return type
+     * @param abstractClass
+     *            the interface/abstract class to bind
+     * @param specificClass
+     *            the specific class implementing or extending
+     *            {@code abstractClass}.
+     * @return itself
+     */
+	&lt;T&gt; DataProviderStrategy addOrReplaceSpecific(
+			Class&lt;T&gt; abstractClass, Class&lt;? extends T&gt; specificClass);
+
+	/**
+     * Remove binding of an interface/abstract class to a specific
+     * implementation
+     *
+     * @param &lt;T&gt; return type
+     * @param abstractClass
+     *            the interface/abstract class to remove binding
+     * @return itself
+     */
+	&lt;T&gt; DataProviderStrategy removeSpecific(
+			Class&lt;T&gt; abstractClass);
+
+	/**
+	 * Specifies how to sort constructors
+	 */
+<span class="pc" id="L106">	public enum Order {</span>
+		/**
+		 * Constructors with more parameters have precedence
+		 */
+<span class="fc" id="L110">		HEAVY_FIRST,</span>
+		/**
+		 * Constructors with less parameters have precedence
+		 */
+<span class="fc" id="L114">		LIGHT_FIRST</span>
+	};
+
+	/**
+	 * Returns the number of default collection elements.
+	 * &lt;p&gt;
+	 * Implementations of this interface need to provide this value.
+	 * &lt;/p&gt;
+	 * 
+	 * @param type
+	 *            Type of collection's elements
+	 * @return The number of default collection elements
+	 */
+	int getNumberOfCollectionElements(Class&lt;?&gt; type);
+
+	/**
+	 * Sets the new default number of default collection elements.
+	 *
+	 * @param newNumberOfCollectionElements
+	 *            The new number of collection elements.
+	 */
+	public void setDefaultNumberOfCollectionElements(int newNumberOfCollectionElements);
+
+	/**
+	 * Returns how many times it is allowed to PODAM to create an instance
+	 * of the same class in a recursive hierarchy
+	 * &lt;p&gt;
+	 * Implementations of this interface need to provide this value.
+	 * &lt;/p&gt;
+	 * 
+	 * @param type
+	 *            Type of POJO to be created
+	 * @return How many times it is allowed to create an instance
+	 *         of the same class in a recursive hierarchy
+	 */
+	int getMaxDepth(Class&lt;?&gt; type);
+
+	/**
+	 * Returns whether the memoization setting is enabled.
+	 *
+	 * When memoization is enabled, only one object will be created for each type. Every next property of the same type
+	 * will be a reference to the same object.
+	 * This can dramatically improve performance but with the expense of not having objects with different values.
+	 *
+	 * &lt;p&gt;
+	 * Implementations of this interface need to provide this value.
+	 * &lt;/p&gt;
+	 *
+	 * @return Whether the memoization setting is enabled.
+	 */
+	boolean isMemoizationEnabled();
+
+	/**
+	 * Sets whether memoization is enabled
+	 * @param isMemoizationEnabled whether memoization is enabled
+	 */
+	void setMemoization(boolean isMemoizationEnabled);
+
+	/**
+	 * Obtains object from memoization cache
+	 *
+	 * @param attributeMetadata
+	 *            attribute metadata for instance to be fetched
+	 * @return object instance from memoization cache
+	 */
+	Object getMemoizedObject(AttributeMetadata attributeMetadata);
+
+	/**
+	 * Saves object in memoization cache
+	 *
+	 * @param attributeMetadata
+	 *            attribute metadata for instance being memoized
+	 * @param instance
+	 *            object instance to save in memoization cache
+	 */
+	void cacheMemoizedObject(AttributeMetadata attributeMetadata, Object instance);
+
+	/**
+	 * Clears memoization cache
+	 */
+	void clearMemoizationCache();
+
+	/**
+	 * Rearranges POJO's constructors in order they will be tried to
+	 * produce the POJO.
+	 * Default strategy consists of putting constructors with less parameters
+	 * to be tried first.
+	 *
+	 * @param constructors
+	 *            Array of POJO's constructors
+	 * @param order
+	 *            {@link Order} how to sort constructors
+	 */
+	void sort(Constructor&lt;?&gt;[] constructors, Order order);
+
+	/**
+	 * Rearranges POJO's methods in order they will be tried to
+	 * produce the POJO.
+	 * Default strategy consists of putting factory methods with more parameters
+	 * to be tried first.
+	 * 
+	 * @param methods
+	 *            Array of POJO's methods
+	 * @param order
+	 *            {@link Order} how to sort constructors
+	 */
+	void sort(Method[] methods, Order order);
+
+	/**
+	 * Resolves factory classes for abstract classes and interfaces.
+	 * &lt;p&gt;
+	 * Should return factory class type, which can be used to instantiate
+	 * an abstract class type or interface.
+	 * &lt;/p&gt;
+	 * 
+	 * @param nonInstantiatableClass
+	 *            Abstract class type or interface
+	 * @return Non-abstract factory class type to instantiate
+	 *         {@code nonInstantiatableClass}.
+	 */
+	Class&lt;?&gt; getFactoryClass(Class&lt;?&gt; nonInstantiatableClass);
+
+	/**
+	 * Resolves abstract classes and interfaces.
+	 * &lt;p&gt;
+	 * Should return specific class type, which can be instantiated and assigned
+	 * to abstract class type or interface.
+	 * &lt;/p&gt;
+	 * 
+	 * @param &lt;T&gt;
+	 *            The type of class being resolved
+	 * @param nonInstantiatableClass
+	 *            Abstract class type or interface
+	 * @return Non-abstract class type derived from
+	 *         {@code nonInstantiatableClass}.
+	 */
+	&lt;T&gt; Class&lt;? extends T&gt; getSpecificClass(Class&lt;T&gt; nonInstantiatableClass);
+
+	/**
+	 * Finds attribute strategies for annotations.
+	 * &lt;p&gt;
+	 * Searches for mapping between annotations and attribute strategies,
+	 * which will be used then for populating fields or constructor parameters.
+	 * &lt;/p&gt;
+	 * 
+	 * @param annotationClass
+	 *        Annotation class to inspect
+	 * @return attribute strategy associated with given annotation
+	 */
+	AttributeStrategy&lt;?&gt; getStrategyForAnnotation(Class&lt;? extends Annotation&gt; annotationClass);
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.6.201602180812</span></div></body></html>

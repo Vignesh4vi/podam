@@ -1,0 +1,8 @@
+"Story","Title","Result","Date","Stability","Duration (s)"
+"Multiple interfaces inheritance test","Podam cannot instantiate interfaces","SUCCESS","2017-10-20T17:32:49.774+05:30","0.0","0.14"
+"Multiple interfaces inheritance test","Podam cannot instantiate interfaces which extend Map","SUCCESS","2017-10-20T17:32:49.496+05:30","0.0","0.15"
+"Inheritance test","Podam should handle basic inheritance scenarios","SUCCESS","2017-10-20T17:32:49.012+05:30","0.0","0.11"
+"Inheritance test","Podam should handle the manufacturing of POJOs which inherit from other classes","SUCCESS","2017-10-20T17:32:49.304+05:30","0.0","0.17"
+"Inheritance test","Podam should manufacture all POJOs in a tree hierarchy","SUCCESS","2017-10-20T17:32:49.126+05:30","0.0","0.18"
+"Inheritance test","Podam should manufacture attributes implementing Collection and Map interfaces","SUCCESS","2017-10-20T17:32:48.874+05:30","0.0","0.14"
+"Multiple interfaces inheritance test","Podam will create an instance of a POJO but its interface types won't be instantiated","SUCCESS","2017-10-20T17:32:49.648+05:30","0.0","0.13"

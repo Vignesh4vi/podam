@@ -1,0 +1,6 @@
+"Story","Title","Result","Date","Stability","Duration (s)"
+"Class info test","In Presence of excluded attributes, the Class Info object should not contain those attributes","SUCCESS","2017-10-20T17:32:47.472+05:30","0.0","0.1"
+"Class info test","Podam should be able to find non-standard attributes with a custom class info strategy","SUCCESS","2017-10-20T17:32:47.257+05:30","0.0","0.11"
+"Class info test","Podam should generate a ClassInfo which contains information for the setters contained in the POJO","SUCCESS","2017-10-20T17:32:47.577+05:30","0.0","0.13"
+"Class info test","Podam should return valid class info for POJOs with no attributes","SUCCESS","2017-10-20T17:32:47.112+05:30","0.0","0.14"
+"Class info test","The ClassInfo object created for a class should handle @PodamExcludeAnnotations","SUCCESS","2017-10-20T17:32:47.366+05:30","0.0","0.11"
