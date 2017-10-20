@@ -38,15 +38,13 @@ jobs:
           key: v1-dependencies-{{ checksum "pom.xml" }}
         
       # run tests!
-      #- run: mvn integration-test
-      - run: echo $CIRCLE_TEST_REPORTS
-      - run: sudo mkdir -p $CIRCLE_TEST_REPORTS/junit/
-      - run: ls $CIRCLE_TEST_REPORTS/junit/ 
-      - run: sudo find . -type f -regex ".*/target/failsafe-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
-      - run: ls $CIRCLE_TEST_REPORTS/junit/
+      - run: mvn integration-test
+      - run: sudo mkdir -p $CIRCLE_WORKING_DIRECTORY/junit/
+      - run: ls $CIRCLE_WORKING_DIRECTORY/junit/ 
+      - run: sudo find . -type f -regex ".*/target/failsafe-reports/.*xml" -exec cp {} $CIRCLE_WORKING_DIRECTORY/junit/ \;
       - store_artifacts:
-          path: $CIRCLE_TEST_REPORTS/junit/
+          path: junit/
           #destination: prefix
 
       - store_test_results:
-          path: $CIRCLE_TEST_REPORTS/junit/
+          path: junit/
