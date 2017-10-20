@@ -39,23 +39,23 @@ jobs:
         
       # run tests!
       - run: mvn integration-test
-      - run: ls
-      - run: ls $CIRCLE_TEST_REPORTS
+      #- run: ls
+      #- run: ls $CIRCLE_TEST_REPORTS
       #- run: ls $CIRCLE_TEST_REPORTS/junit/
-      - run: ls target
-      - run: ls target/failsafe-reports
-      - run: ls ".*/target/failsafe-reports/.*"
+      #- run: ls target
+      #- run: ls target/failsafe-reports
+      #- run: ls ".*/target/failsafe-reports/.*"
           
-      #- run: sudo mkdir -p $CIRCLE_TEST_REPORTS/junit/
-      #- run: sudo find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
-    test:
-      post:
-        - sudo mkdir -p $CIRCLE_TEST_REPORTS/junit/
-        - sudo find . -type f -regex ".*/target/failsafe-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
+      - run: sudo mkdir -p $CIRCLE_TEST_REPORTS/junit/
+      - run: sudo find . -type f -regex ".*/target/failsafe-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
+    #test:
+    #  post:
+    #    - sudo mkdir -p $CIRCLE_TEST_REPORTS/junit/
+    #    - sudo find . -type f -regex ".*/target/failsafe-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
 
-        - store_artifacts:
+      - store_artifacts:
           path: $CIRCLE_TEST_REPORTS/junit/
           #destination: prefix
 
-        - store_test_results:
-            path: $CIRCLE_TEST_REPORTS/junit/
+      - store_test_results:
+          path: $CIRCLE_TEST_REPORTS/junit/
