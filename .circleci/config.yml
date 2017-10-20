@@ -40,12 +40,16 @@ jobs:
       # run tests!
       - run: mvn integration-test
           
-      - run: sudo mkdir -p $CIRCLE_TEST_REPORTS/junit/
-      - run: sudo find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
+      #- run: sudo mkdir -p $CIRCLE_TEST_REPORTS/junit/
+      #- run: sudo find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
+    test:
+      post:
+        - sudo kdir -p $CIRCLE_TEST_REPORTS/junit/
+        - sudo find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
 
-      - store_artifacts:
-          path: /code/test-results
-          destination: prefix
+      #- store_artifacts:
+      #    path: /code/test-results
+      #    destination: prefix
 
-      - store_test_results:
-          path: /tmp/test-results
+      #- store_test_results:
+      #    path: /tmp/test-results
