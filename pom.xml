@@ -436,13 +436,6 @@
 			<artifactId>jcip-annotations</artifactId>
 			<version>1.0</version>
 		</dependency>
-<!-- https://mvnrepository.com/artifact/org.eclipse.mylyn.github/org.eclipse.egit.github.core.tests -->
-  <dependency>
-    <groupId>org.eclipse.mylyn.github</groupId>
-    <artifactId>org.eclipse.egit.github.core.tests</artifactId>
-    <version>3.1.0.201310021548-r</version>
-                        </dependency>
-
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
