@@ -41,7 +41,4 @@ jobs:
       - run: mvn integration-test
      
       - run:
-        commnad: mkdir -p $CIRCLE_TEST_REPORTS/junit/
-
-
-
+          commnad: mkdir -p $CIRCLE_TEST_REPORTS/junit/
