@@ -30,7 +30,7 @@ jobs:
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
 
-      - run: mvn clean install
+#      - run: mvn clean install
 
       - save_cache:
           paths:
@@ -45,6 +45,10 @@ jobs:
     test:
       post:
         - sudo mkdir -p $CIRCLE_TEST_REPORTS/junit/
+        - ls
+        - ls $CIRCLE_TEST_REPORTS
+        - ls $CIRCLE_TEST_REPORTS/junit/
+        - ls ".*/target/failsafe-reports/.*"
         - sudo find . -type f -regex ".*/target/failsafe-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
 
         - store_artifacts:
