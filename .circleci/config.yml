@@ -41,7 +41,9 @@ jobs:
       - run: mvn integration-test
       - run: ls
       - run: ls $CIRCLE_TEST_REPORTS
-      - run: ls $CIRCLE_TEST_REPORTS/junit/
+      #- run: ls $CIRCLE_TEST_REPORTS/junit/
+      - run: ls target
+      - run: ls target/failsafe-reports
       - run: ls ".*/target/failsafe-reports/.*"
           
       #- run: sudo mkdir -p $CIRCLE_TEST_REPORTS/junit/
