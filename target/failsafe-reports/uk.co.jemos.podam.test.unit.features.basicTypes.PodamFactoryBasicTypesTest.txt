@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: uk.co.jemos.podam.test.unit.features.basicTypes.PodamFactoryBasicTypesTest
 -------------------------------------------------------------------------------
-Tests run: 18, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.367 sec - in uk.co.jemos.podam.test.unit.features.basicTypes.PodamFactoryBasicTypesTest
+Tests run: 18, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.575 sec - in uk.co.jemos.podam.test.unit.features.basicTypes.PodamFactoryBasicTypesTest

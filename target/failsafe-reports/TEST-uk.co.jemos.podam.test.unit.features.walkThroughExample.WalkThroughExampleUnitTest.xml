@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" name="uk.co.jemos.podam.test.unit.features.walkThroughExample.WalkThroughExampleUnitTest" time="1.278" tests="7" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" name="uk.co.jemos.podam.test.unit.features.walkThroughExample.WalkThroughExampleUnitTest" time="1.245" tests="7" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.runtime.name" value="Java(TM) SE Runtime Environment"/>
     <property name="sun.boot.library.path" value="/usr/lib/jvm/java-8-oracle/jre/lib/i386"/>
@@ -41,7 +41,7 @@
     <property name="java.vm.specification.version" value="1.8"/>
     <property name="sun.arch.data.model" value="32"/>
     <property name="java.home" value="/usr/lib/jvm/java-8-oracle/jre"/>
-    <property name="sun.java.command" value="org.codehaus.plexus.classworlds.launcher.Launcher clean install"/>
+    <property name="sun.java.command" value="org.codehaus.plexus.classworlds.launcher.Launcher integration-test"/>
     <property name="java.specification.vendor" value="Oracle Corporation"/>
     <property name="user.language" value="en"/>
     <property name="awt.toolkit" value="sun.awt.X11.XToolkit"/>
@@ -58,11 +58,11 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="sun.cpu.isalist" value=""/>
   </properties>
-  <testcase name="testCountrySetup" classname="uk.co.jemos.podam.test.unit.features.walkThroughExample.WalkThroughExampleUnitTest" time="0.122"/>
-  <testcase name="testClientSetup" classname="uk.co.jemos.podam.test.unit.features.walkThroughExample.WalkThroughExampleUnitTest" time="0.384"/>
-  <testcase name="testOrderSetup" classname="uk.co.jemos.podam.test.unit.features.walkThroughExample.WalkThroughExampleUnitTest" time="0.138"/>
-  <testcase name="testArticleSetup" classname="uk.co.jemos.podam.test.unit.features.walkThroughExample.WalkThroughExampleUnitTest" time="0.119"/>
-  <testcase name="testBankAccountSetup" classname="uk.co.jemos.podam.test.unit.features.walkThroughExample.WalkThroughExampleUnitTest" time="0.11"/>
-  <testcase name="testAddressSetup" classname="uk.co.jemos.podam.test.unit.features.walkThroughExample.WalkThroughExampleUnitTest" time="0.17"/>
-  <testcase name="testOrderItemSetup" classname="uk.co.jemos.podam.test.unit.features.walkThroughExample.WalkThroughExampleUnitTest" time="0.109"/>
+  <testcase name="testCountrySetup" classname="uk.co.jemos.podam.test.unit.features.walkThroughExample.WalkThroughExampleUnitTest" time="0.142"/>
+  <testcase name="testClientSetup" classname="uk.co.jemos.podam.test.unit.features.walkThroughExample.WalkThroughExampleUnitTest" time="0.216"/>
+  <testcase name="testOrderSetup" classname="uk.co.jemos.podam.test.unit.features.walkThroughExample.WalkThroughExampleUnitTest" time="0.258"/>
+  <testcase name="testArticleSetup" classname="uk.co.jemos.podam.test.unit.features.walkThroughExample.WalkThroughExampleUnitTest" time="0.141"/>
+  <testcase name="testBankAccountSetup" classname="uk.co.jemos.podam.test.unit.features.walkThroughExample.WalkThroughExampleUnitTest" time="0.112"/>
+  <testcase name="testAddressSetup" classname="uk.co.jemos.podam.test.unit.features.walkThroughExample.WalkThroughExampleUnitTest" time="0.111"/>
+  <testcase name="testOrderItemSetup" classname="uk.co.jemos.podam.test.unit.features.walkThroughExample.WalkThroughExampleUnitTest" time="0.129"/>
 </testsuite>

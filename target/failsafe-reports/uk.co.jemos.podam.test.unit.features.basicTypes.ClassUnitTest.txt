@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: uk.co.jemos.podam.test.unit.features.basicTypes.ClassUnitTest
 -------------------------------------------------------------------------------
-Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.432 sec - in uk.co.jemos.podam.test.unit.features.basicTypes.ClassUnitTest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.362 sec - in uk.co.jemos.podam.test.unit.features.basicTypes.ClassUnitTest
