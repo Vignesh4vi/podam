@@ -413,17 +413,12 @@
 				<artifactId>serenity-maven-plugin</artifactId>
 				<version>${serenity.version}</version>
 			</plugin>
+
+
                 <plugin>
                     <groupId>com.github.github</groupId>
                     <artifactId>site-maven-plugin</artifactId>
                     <version>0.10</version>
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.eclipse.mylyn.github</groupId>
-                            <artifactId>org.eclipse.egit.github.core</artifactId>
-                            <version>2.1.5</version>
-                        </dependency>
-                    </dependencies>
                 </plugin>
 		</plugins>
 	</reporting>
@@ -448,6 +443,11 @@
 			<artifactId>jcip-annotations</artifactId>
 			<version>1.0</version>
 		</dependency>
+                        <dependency>
+                            <groupId>org.eclipse.mylyn.github</groupId>
+                            <artifactId>org.eclipse.egit.github.core</artifactId>
+                            <version>2.1.5</version>
+                        </dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
