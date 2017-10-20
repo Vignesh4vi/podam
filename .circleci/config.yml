@@ -39,16 +39,16 @@ jobs:
         
       # run tests!
       - run: mvn integration-test
+      - run: ls
+      - run: ls $CIRCLE_TEST_REPORTS
+      - run: ls $CIRCLE_TEST_REPORTS/junit/
+      - run: ls ".*/target/failsafe-reports/.*"
           
       #- run: sudo mkdir -p $CIRCLE_TEST_REPORTS/junit/
       #- run: sudo find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
     test:
       post:
         - sudo mkdir -p $CIRCLE_TEST_REPORTS/junit/
-        - ls
-        - ls $CIRCLE_TEST_REPORTS
-        - ls $CIRCLE_TEST_REPORTS/junit/
-        - ls ".*/target/failsafe-reports/.*"
         - sudo find . -type f -regex ".*/target/failsafe-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
 
         - store_artifacts:
