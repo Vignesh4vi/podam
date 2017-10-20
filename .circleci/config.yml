@@ -44,12 +44,12 @@ jobs:
       #- run: sudo find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
     test:
       post:
-        - sudo kdir -p $CIRCLE_TEST_REPORTS/junit/
-        - sudo find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
+        - sudo mkdir -p $CIRCLE_TEST_REPORTS/junit/
+        - sudo find . -type f -regex ".*/target/failsafe-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
 
-      #- store_artifacts:
-      #    path: /code/test-results
-      #    destination: prefix
+        - store_artifacts:
+          path: $CIRCLE_TEST_REPORTS/junit/
+          #destination: prefix
 
-      #- store_test_results:
-      #    path: /tmp/test-results
+        - store_test_results:
+            path: $CIRCLE_TEST_REPORTS/junit/
